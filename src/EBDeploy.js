@@ -1,7 +1,6 @@
 const sh = require('shell-tag');
 const AWS = require('aws-sdk');
 const delay = require('delay');
-const chalk = require('chalk');
 const path = require('path');
 const fs = require('fs');
 
@@ -25,12 +24,12 @@ class EBDeploy {
   }
 
   async deploy () {
-    console.log(chalk.cyan('Deploying application'));
+    console.log('Deploying application');
     this.startTime = new Date();
 
     try {
       if (this.options.useExistingAppVersion && await this.appVersionExists()) {
-        console.log(chalk.yellow(`Using existing version '${this.versionLabel}'`));
+        console.log(`Using existing version '${this.versionLabel}'`);
         await this.updateEnvironment(this.versionLabel);
       } else {
         if (!await this.bucketExists()) {
@@ -58,9 +57,9 @@ class EBDeploy {
 
       this.cleanup();
 
-      console.log(chalk.green(`Application ${this.options.applicationName} (${this.versionLabel}) deployed in ${this.environmentName} environment.`));
+      console.log(`Application ${this.options.applicationName} (${this.versionLabel}) deployed in ${this.environmentName} environment.`);
     } catch (e) {
-      console.error(chalk.red(e.message || e));
+      console.error(e.message || e);
       process.exit(1);
     }
   }
@@ -169,9 +168,9 @@ class EBDeploy {
 
           if (event.Severity === 'ERROR') {
             errors++;
-            console.error(chalk.red(message));
+            console.error(message);
           } else {
-            console.log(chalk.gray(message));
+            console.log(message);
           }
         }
       });
