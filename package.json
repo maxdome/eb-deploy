@@ -11,9 +11,11 @@
   },
   "keywords": [
     "aws",
+    "elastic beanstalk",
     "elastic",
     "beanstalk",
-    "deployment"
+    "deployment",
+    "cli"
   ],
   "author": "Fabian Schneider <fabian.schneider@maxdome.de>",
   "license": "MIT",
