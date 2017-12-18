@@ -190,7 +190,7 @@ class EBDeploy {
 
   cleanup () {
     if (!this.options.skipCleanup) {
-      sh`git stash --all`
+      sh`git stash --all`;
     }
   }
 
