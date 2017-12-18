@@ -18,6 +18,7 @@ class CLI {
       .option('--wait-until-deployed', 'Wait until the app is deployed')
       .option('--only-create-app-version', 'Only create a new app version without actually deploying it')
       .option('--use-existing-app-version', 'Use an existing app version if the version with the label already exists')
+      .option('--skip-cleanup', 'Skips the cleanup after the deploy')
       .option('--access-key-id [value]', 'AWS Access Key ID')
       .option('--secret-access-key [value]', 'AWS Secret Access Key')
       .option('--session-token [value]', 'AWS Session Token')

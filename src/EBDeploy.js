@@ -1,5 +1,5 @@
-const AWS = require('aws-sdk');
 const sh = require('shell-tag');
+const AWS = require('aws-sdk');
 const delay = require('delay');
 const chalk = require('chalk');
 const path = require('path');
@@ -12,13 +12,13 @@ class EBDeploy {
   }
 
   init () {
-    const options = { region: this.region };
+    const config = { region: this.region };
 
     if (this.accessKeyId && this.secretAccessKey) {
-      options.credentials = new AWS.Credentials(this.accessKeyId, this.secretAccessKey, this.sessionToken);
+      config.credentials = new AWS.Credentials(this.accessKeyId, this.secretAccessKey, this.sessionToken);
     }
 
-    AWS.config.update(options);
+    AWS.config.update(config);
 
     this.s3 = new AWS.S3();
     this.eb = new AWS.ElasticBeanstalk();
@@ -27,17 +27,17 @@ class EBDeploy {
   async deploy () {
     console.log(chalk.cyan('Deploying application'));
     this.startTime = new Date();
-    let zipFile;
 
     try {
       if (this.options.useExistingAppVersion && await this.appVersionExists()) {
-        console.log(chalk.yellow(`Application version '${this.versionLabel}' already exists`));
+        console.log(chalk.yellow(`Using existing version '${this.versionLabel}'`));
         await this.updateEnvironment(this.versionLabel);
       } else {
         if (!await this.bucketExists()) {
           await this.createBucket();
         }
 
+        let zipFile;
         if (this.options.zipFile) {
           zipFile = path.resolve(this.options.zipFile);
         } else {
@@ -55,6 +55,8 @@ class EBDeploy {
       if (this.options.waitUntilDeployed) {
         await this.waitUntilDeployed();
       }
+
+      this.cleanup();
 
       console.log(chalk.green(`Application ${this.options.applicationName} (${this.versionLabel}) deployed in ${this.environmentName} environment.`));
     } catch (e) {
@@ -74,10 +76,55 @@ class EBDeploy {
     }
   }
 
+  async bucketExists () {
+    try {
+      await this.s3.headBucket({
+        Bucket: this.options.bucket
+      }).promise();
+    } catch (e) {
+      if (e.code === 'NotFound') {
+        return false;
+      } else {
+        throw e;
+      }
+    }
+
+    return true;
+  }
+
+  createBucket () {
+    return this.s3.createBucket({
+      Bucket: this.options.bucket
+    }).promise();
+  }
+
+  createZip () {
+    const zipFileName = path.resolve(this.archiveName);
+    sh`git archive -o ${zipFileName} --format=zip HEAD`;
+    return zipFileName;
+  }
+
+  async upload (archiveName, file) {
+    const key = this.options.bucketPath ? path.join(this.options.bucketPath, archiveName) : `${archiveName}`;
+
+    await this.s3.putObject({
+      Bucket: this.options.bucket,
+      Body: fs.readFileSync(file),
+      Key: key
+    }).promise();
+
+    await this.s3.waitFor('objectExists', {
+      Bucket: this.options.bucket,
+      Key: key
+    }).promise();
+
+    return key;
+  }
+
   async createAppVersion (s3Key) {
     const description = this.versionDescription.substring(0, 200);
 
-    const applicationVersionResponse = await this.eb.createApplicationVersion({
+    const response = await this.eb.createApplicationVersion({
       ApplicationName: this.options.applicationName,
       VersionLabel: this.versionLabel,
       Description: description,
@@ -88,7 +135,7 @@ class EBDeploy {
       AutoCreateApplication: false
     }).promise();
 
-    return applicationVersionResponse.ApplicationVersion.VersionLabel;
+    return response.ApplicationVersion.VersionLabel;
   }
 
   updateEnvironment (versionLabel) {
@@ -141,49 +188,10 @@ class EBDeploy {
     }
   }
 
-  async bucketExists () {
-    try {
-      await this.s3.headBucket({
-        Bucket: this.options.bucket
-      }).promise();
-    } catch (e) {
-      if (e.code === 'NotFound') {
-        return false;
-      } else {
-        throw e;
-      }
+  cleanup () {
+    if (!this.options.skipCleanup) {
+      sh`git stash --all`
     }
-
-    return true;
-  }
-
-  createBucket () {
-    return this.s3.createBucket({
-      Bucket: this.options.bucket
-    }).promise();
-  }
-
-  createZip () {
-    const zipFileName = path.resolve(this.archiveName);
-    sh`git archive -o ${zipFileName} --format=zip HEAD`;
-    return zipFileName;
-  }
-
-  async upload (archiveName, file) {
-    const key = this.options.bucketPath ? `${this.options.bucketPath}/${archiveName}` : `${archiveName}`;
-
-    await this.s3.putObject({
-      Bucket: this.options.bucket,
-      Body: fs.readFileSync(file),
-      Key: key
-    }).promise();
-
-    await this.s3.waitFor('objectExists', {
-      Bucket: this.options.bucket,
-      Key: key
-    }).promise();
-
-    return key;
   }
 
   get region () {
