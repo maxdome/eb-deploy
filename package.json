@@ -1,0 +1,30 @@
+{
+  "name": "@maxdome/eb-deploy",
+  "version": "0.1.0",
+  "description": "CLI for AWS Elastic Beanstalk Deployments",
+  "main": "src/cli.js",
+  "scripts": {
+    "test": "semistandard"
+  },
+  "bin": {
+    "eb-deploy": "./bin/eb-deploy"
+  },
+  "keywords": [
+    "aws",
+    "elastic",
+    "beanstalk",
+    "deployment"
+  ],
+  "author": "Fabian Schneider <fabian.schneider@maxdome.de>",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.171.0",
+    "chalk": "^2.3.0",
+    "commander": "^2.12.2",
+    "delay": "^2.0.0",
+    "shell-tag": "^1.0.1"
+  },
+  "devDependencies": {
+    "semistandard": "^11.0.0"
+  }
+}

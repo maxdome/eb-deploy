@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+process.title = 'eb-deploy';
+require('../src/cli').run(process.argv);
