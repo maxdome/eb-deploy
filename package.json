@@ -26,5 +26,16 @@
   },
   "devDependencies": {
     "semistandard": "^11.0.0"
+  },
+  "repository" : {
+    "type" : "git",
+    "url" : "git+https://github.com/maxdome/eb-deploy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/maxdome/eb-deploy/issues"
+  },
+  "homepage": "https://github.com/maxdome/eb-deploy#readme",
+  "engines": {
+    "node": ">=7.6.0"
   }
 }

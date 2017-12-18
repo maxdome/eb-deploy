@@ -7,7 +7,7 @@ Inspired by [dpl](https://github.com/travis-ci/dpl).
 ## Install
 
 ```sh
-npm install -g @maxdome/eb-deploy
+$ npm install -g @maxdome/eb-deploy
 ```
 
 ## Usage
