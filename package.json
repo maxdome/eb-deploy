@@ -4,7 +4,10 @@
   "description": "CLI for AWS Elastic Beanstalk deployments",
   "main": "src/cli.js",
   "scripts": {
-    "test": "semistandard"
+    "lint": "semistandard",
+    "test": "mocha",
+    "coverage": "nyc npm test",
+    "precommit": "npm run lint && npm test"
   },
   "bin": {
     "eb-deploy": "./bin/eb-deploy"
@@ -26,7 +29,14 @@
     "shell-tag": "^1.0.1"
   },
   "devDependencies": {
-    "semistandard": "^11.0.0"
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^4.0.1",
+    "mock-require": "^2.0.2",
+    "nyc": "^11.4.1",
+    "semistandard": "^11.0.0",
+    "sinon": "^4.1.3",
+    "sinon-chai": "^2.14.0"
   },
   "repository": {
     "type": "git",

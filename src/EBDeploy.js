@@ -5,12 +5,8 @@ const path = require('path');
 const fs = require('fs');
 
 class EBDeploy {
-  constructor (options) {
+  constructor (options = {}) {
     this.options = options;
-    this.init();
-  }
-
-  init () {
     const config = { region: this.region };
 
     if (this.accessKeyId && this.secretAccessKey) {
