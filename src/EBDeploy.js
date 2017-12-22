@@ -194,7 +194,8 @@ class EBDeploy {
   }
 
   get versionLabel () {
-    return this.options.versionLabel || process.env['ELASTIC_BEANSTALK_LABEL'] || `sha-${this.sha}-${Date.now()}`;
+    this._versionLabel = this._versionLabel || this.options.versionLabel || process.env['ELASTIC_BEANSTALK_LABEL'] || `sha-${this.sha}-${Date.now()}`;
+    return this._versionLabel;
   }
 
   get versionDescription () {

@@ -25,7 +25,7 @@ class CLI {
       .option('--region [value]', 'AWS region of the Elastic Beanstalk application')
       .parse(argv);
 
-    if (!process.argv.slice(2).length) {
+    if (!argv.slice(2).length) {
       program.help();
     }
 
