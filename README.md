@@ -1,5 +1,12 @@
 # EB Deploy
 
+[![Build Status](https://travis-ci.org/maxdome/eb-deploy.svg?branch=develop)](https://travis-ci.org/maxdome/eb-deploy)
+[![npm](https://img.shields.io/npm/v/@maxdome/eb-deploy.svg)](https://www.npmjs.com/package/@maxdome/eb-deploy)
+[![dependencies Status](https://david-dm.org/maxdome/eb-deploy/status.svg)](https://david-dm.org/maxdome/eb-deploy)
+[![devDependencies Status](https://david-dm.org/maxdome/eb-deploy/dev-status.svg)](https://david-dm.org/maxdome/eb-deploy?type=dev)
+[![js-semistandard-style](https://img.shields.io/badge/code%20style-semistandard-brightgreen.svg)](https://github.com/Flet/semistandard)
+
+
 > CLI for AWS Elastic Beanstalk deployments
  
 Inspired by [dpl](https://github.com/travis-ci/dpl).
