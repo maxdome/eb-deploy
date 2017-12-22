@@ -12,7 +12,7 @@ $ npm install -g @maxdome/eb-deploy
 
 ## Usage
 
-```sh
+```
 Usage: eb-deploy [options]
 
 CLI for AWS Elastic Beanstalk deployments
