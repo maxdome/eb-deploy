@@ -66,8 +66,10 @@ class EBDeploy {
       VersionLabels: [ this.versionLabel ]
     }).promise();
 
-    if (response) {
+    if (response && response.ApplicationVersions) {
       return response.ApplicationVersions.length > 0;
+    } else {
+      throw new Error('Invalid response from describeApplicationVersions request');
     }
   }
 
@@ -146,12 +148,13 @@ class EBDeploy {
 
     while (true) {
       const environmentsResponse = await this.eb.describeEnvironments({
-        ApplicationName: this.applicationName,
+        ApplicationName: this.options.applicationName,
         EnvironmentNames: [ this.environmentName ]
       }).promise();
       const environment = environmentsResponse['Environments'][0];
 
       const currentEventsResponse = await this.eb.describeEvents({
+        ApplicationName: this.options.applicationName,
         EnvironmentName: this.environmentName,
         StartTime: this.startTime
       }).promise();
