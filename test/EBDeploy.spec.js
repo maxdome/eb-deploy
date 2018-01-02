@@ -2,6 +2,7 @@
 /* eslint no-unused-expressions: 0 */
 
 const chai = require('chai');
+const path = require('path');
 const sinon = require('sinon');
 const AWS = require('aws-sdk');
 const mock = require('mock-require');
@@ -74,7 +75,6 @@ describe('EBDeploy', () => {
     });
   });
 
-  // TODO
   describe('deploy ()', () => {
     let ebDeploy;
 
@@ -86,7 +86,7 @@ describe('EBDeploy', () => {
 
     beforeEach(() => {
       ebDeploy = new EBDeploy(options);
-      sandbox.stub(console, 'log');
+      sandbox.stub(console, 'info');
       sandbox.stub(ebDeploy, 'appVersionExists')
       sandbox.stub(ebDeploy, 'bucketExists')
       sandbox.stub(ebDeploy, 'createBucket')
@@ -102,6 +102,93 @@ describe('EBDeploy', () => {
       await ebDeploy.deploy();
       expect(ebDeploy.startTime).to.be.instanceof(Date);
     });
+
+    it('calls eb.appVersionExists if useExistingAppVersion is set', async () => {
+      ebDeploy.options.useExistingAppVersion = true;
+      await ebDeploy.deploy();
+      expect(ebDeploy.appVersionExists).to.have.been.called;
+    });
+
+    it('calls eb.updateEnvironment with versionLabel if app version already exists', async () => {
+      ebDeploy.options.useExistingAppVersion = true;
+      ebDeploy.appVersionExists.returns(true);
+      await ebDeploy.deploy();
+      expect(ebDeploy.updateEnvironment).to.have.been.calledWith(options.versionLabel);
+    });
+
+    it('calls eb.bucketExists', async () => {
+      await ebDeploy.deploy();
+      expect(ebDeploy.bucketExists).to.have.been.called;
+    });
+
+    it('calls eb.createBucket if bucket does not exists yet', async () => {
+      ebDeploy.bucketExists.returns(false);
+      await ebDeploy.deploy();
+      expect(ebDeploy.createBucket).to.have.been.called;
+    });
+
+    it('does not call eb.createBucket if bucket exists', async () => {
+      ebDeploy.bucketExists.returns(true);
+      await ebDeploy.deploy();
+      expect(ebDeploy.createBucket).to.not.have.been.called;
+    });
+
+    it('calls eb.createZip if no zipFile was defined', async () => {
+      await ebDeploy.deploy();
+      expect(ebDeploy.createZip).to.have.been.called;
+    });
+
+    it('does not call eb.createZip if a zipFile was defined', async () => {
+      ebDeploy.options.zipFile = 'testZipFile.zip';
+      await ebDeploy.deploy();
+      expect(ebDeploy.createZip).to.not.have.been.called;
+    });
+
+    it('calls eb.upload with archiveName and zipFile', async () => {
+      const zipFile = 'testZipFile.zip'
+      ebDeploy.createZip.returns(zipFile);
+      await ebDeploy.deploy();
+      expect(ebDeploy.upload).to.have.been.calledWith(options.versionLabel + '.zip', path.resolve(zipFile));
+    });
+
+    it('calls eb.createAppVersion with S3 key', async () => {
+      const s3Key = 'testS3Key.zip'
+      ebDeploy.upload.returns(s3Key);
+      await ebDeploy.deploy();
+      expect(ebDeploy.createAppVersion).to.have.been.calledWith(s3Key);
+    });
+
+    it('does not call eb.updateEnvironment if onlyCreateAppVersion option is set', async () => {
+      ebDeploy.options.onlyCreateAppVersion = true;
+      await ebDeploy.deploy();
+      expect(ebDeploy.updateEnvironment).to.not.have.been.called;
+    });
+
+    it('calls eb.updateEnvironment with version', async () => {
+      const version = 'testVersion';
+      ebDeploy.createAppVersion.returns(version)
+      await ebDeploy.deploy();
+      expect(ebDeploy.updateEnvironment).to.not.have.been.calledWith(version);
+    });
+
+    it('calls eb.waitUntilDeploy if waitUntilDeployed option is set', async () => {
+      ebDeploy.options.waitUntilDeployed = true;
+      await ebDeploy.deploy();
+      expect(ebDeploy.waitUntilDeployed).to.have.been.called;
+    });
+
+    it('calls eb.cleanup', async () => {
+      await ebDeploy.deploy();
+      expect(ebDeploy.cleanup).to.have.been.called;
+    });
+
+    it('calls process.exit on error', async () => {
+      ebDeploy.cleanup.throws('Test error');
+      sandbox.stub(console, 'error');
+      sandbox.stub(process, 'exit');
+      await ebDeploy.deploy();
+      expect(process.exit).to.have.been.calledWith(1);
+    })
   });
 
   describe('appVersionExists ()', () => {
@@ -398,7 +485,7 @@ describe('EBDeploy', () => {
       sandbox.stub(ebDeploy.eb, 'describeEvents').returns({
         promise: () => Promise.resolve({ Events })
       });
-      sandbox.stub(console, 'log');
+      sandbox.stub(console, 'info');
       sandbox.stub(console, 'error');
     });
 
@@ -421,10 +508,10 @@ describe('EBDeploy', () => {
       });
     });
 
-    it('calls console.log with event date, severity and message', async () => {
+    it('calls console.info with event date, severity and message', async () => {
       await ebDeploy.waitUntilDeployed();
-      expect(console.log).to.have.been.calledOnce;
-      expect(console.log.args[0]).to.match(/(.*)\s\[(TRACE|DEBUG|INFO|WARN|ERROR|FATAL)\]\s(.*)/);
+      expect(console.info).to.have.been.calledOnce;
+      expect(console.info.args[0]).to.match(/(.*)\s\[(TRACE|DEBUG|INFO|WARN|ERROR|FATAL)\]\s(.*)/);
     });
 
     it('throws an Error if error count is above 0', async () => {

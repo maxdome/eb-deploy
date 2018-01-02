@@ -20,12 +20,12 @@ class EBDeploy {
   }
 
   async deploy () {
-    console.log('Deploying application');
+    console.info('Deploying application');
     this.startTime = new Date();
 
     try {
       if (this.options.useExistingAppVersion && await this.appVersionExists()) {
-        console.log(`Using existing version '${this.versionLabel}'`);
+        console.info(`Using existing version '${this.versionLabel}'`);
         await this.updateEnvironment(this.versionLabel);
       } else {
         if (!await this.bucketExists()) {
@@ -53,7 +53,7 @@ class EBDeploy {
 
       this.cleanup();
 
-      console.log(`Application ${this.options.applicationName} (${this.versionLabel}) deployed in ${this.environmentName} environment.`);
+      console.info(`Application ${this.options.applicationName} (${this.versionLabel}) deployed in ${this.environmentName} environment.`);
     } catch (e) {
       console.error(e.message || e);
       process.exit(1);
@@ -169,7 +169,7 @@ class EBDeploy {
             errors++;
             console.error(message);
           } else {
-            console.log(message);
+            console.info(message);
           }
         }
       });
