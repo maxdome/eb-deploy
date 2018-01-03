@@ -1,6 +1,7 @@
 # EB Deploy
 
 [![Build Status](https://travis-ci.org/maxdome/eb-deploy.svg?branch=develop)](https://travis-ci.org/maxdome/eb-deploy)
+[![Coverage Status](https://coveralls.io/repos/github/maxdome/eb-deploy/badge.svg?branch=develop)](https://coveralls.io/github/maxdome/eb-deploy?branch=develop)
 [![npm](https://img.shields.io/npm/v/@maxdome/eb-deploy.svg)](https://www.npmjs.com/package/@maxdome/eb-deploy)
 [![dependencies Status](https://david-dm.org/maxdome/eb-deploy/status.svg)](https://david-dm.org/maxdome/eb-deploy)
 [![devDependencies Status](https://david-dm.org/maxdome/eb-deploy/dev-status.svg)](https://david-dm.org/maxdome/eb-deploy?type=dev)
