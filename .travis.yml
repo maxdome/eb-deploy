@@ -9,4 +9,5 @@ script:
   - npm run coverage
 
 after_script:
-  - nyc report --reporter=text-lcov | coveralls
+  - npm i -g coveralls
+  - npx nyc report --reporter=text-lcov | coveralls
