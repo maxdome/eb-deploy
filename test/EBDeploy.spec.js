@@ -87,15 +87,15 @@ describe('EBDeploy', () => {
     beforeEach(() => {
       ebDeploy = new EBDeploy(options);
       sandbox.stub(console, 'info');
-      sandbox.stub(ebDeploy, 'appVersionExists')
-      sandbox.stub(ebDeploy, 'bucketExists')
-      sandbox.stub(ebDeploy, 'createBucket')
-      sandbox.stub(ebDeploy, 'createZip')
-      sandbox.stub(ebDeploy, 'upload')
-      sandbox.stub(ebDeploy, 'createAppVersion')
-      sandbox.stub(ebDeploy, 'updateEnvironment')
-      sandbox.stub(ebDeploy, 'waitUntilDeployed')
-      sandbox.stub(ebDeploy, 'cleanup')
+      sandbox.stub(ebDeploy, 'appVersionExists');
+      sandbox.stub(ebDeploy, 'bucketExists');
+      sandbox.stub(ebDeploy, 'createBucket');
+      sandbox.stub(ebDeploy, 'createZip');
+      sandbox.stub(ebDeploy, 'upload');
+      sandbox.stub(ebDeploy, 'createAppVersion');
+      sandbox.stub(ebDeploy, 'updateEnvironment');
+      sandbox.stub(ebDeploy, 'waitUntilDeployed');
+      sandbox.stub(ebDeploy, 'cleanup');
     });
 
     it('sets start time', async () => {
@@ -145,14 +145,14 @@ describe('EBDeploy', () => {
     });
 
     it('calls eb.upload with archiveName and zipFile', async () => {
-      const zipFile = 'testZipFile.zip'
+      const zipFile = 'testZipFile.zip';
       ebDeploy.createZip.returns(zipFile);
       await ebDeploy.deploy();
       expect(ebDeploy.upload).to.have.been.calledWith(options.versionLabel + '.zip', path.resolve(zipFile));
     });
 
     it('calls eb.createAppVersion with S3 key', async () => {
-      const s3Key = 'testS3Key.zip'
+      const s3Key = 'testS3Key.zip';
       ebDeploy.upload.returns(s3Key);
       await ebDeploy.deploy();
       expect(ebDeploy.createAppVersion).to.have.been.calledWith(s3Key);
@@ -166,7 +166,7 @@ describe('EBDeploy', () => {
 
     it('calls eb.updateEnvironment with version', async () => {
       const version = 'testVersion';
-      ebDeploy.createAppVersion.returns(version)
+      ebDeploy.createAppVersion.returns(version);
       await ebDeploy.deploy();
       expect(ebDeploy.updateEnvironment).to.not.have.been.calledWith(version);
     });
@@ -188,7 +188,7 @@ describe('EBDeploy', () => {
       sandbox.stub(process, 'exit');
       await ebDeploy.deploy();
       expect(process.exit).to.have.been.calledWith(1);
-    })
+    });
   });
 
   describe('appVersionExists ()', () => {
@@ -231,7 +231,7 @@ describe('EBDeploy', () => {
     it('throws an error if response from eb.desribeApplicationVersion is not as expected', async () => {
       response = { UnknownResponse: 'unknown' };
       return expect(ebDeploy.appVersionExists()).to.be.rejected;
-  });
+    });
   });
 
   describe('bucketExists ()', () => {
@@ -472,11 +472,11 @@ describe('EBDeploy', () => {
       EBDeploy = mock.reRequire('../src/EBDeploy');
       ebDeploy = new EBDeploy(options);
       Events = [{
-        ApplicationName: options.applicationName, 
-        EnvironmentName: options.environmentName, 
-        EventDate: new Date(), 
-        Message: "Environment health has transitioned from Info to Ok.", 
-        Severity: "INFO"
+        ApplicationName: options.applicationName,
+        EnvironmentName: options.environmentName,
+        EventDate: new Date(),
+        Message: 'Environment health has transitioned from Info to Ok.',
+        Severity: 'INFO'
       }];
       Environments = [{ Status: 'Ready' }];
       sandbox.stub(ebDeploy.eb, 'describeEnvironments').returns({
@@ -495,7 +495,7 @@ describe('EBDeploy', () => {
         ApplicationName: options.applicationName,
         EnvironmentNames: [ options.environmentName ]
       });
-      });
+    });
 
     it('calls eb.describeEvents with ApplicationName, EnvironmentName and StartTime', async () => {
       const startTime = new Date();
@@ -516,26 +516,26 @@ describe('EBDeploy', () => {
 
     it('throws an Error if error count is above 0', async () => {
       Events = [{
-        ApplicationName: options.applicationName, 
-        EnvironmentName: options.environmentName, 
-        EventDate: new Date(), 
-        Message: "Application version already exists", 
-        Severity: "ERROR"
+        ApplicationName: options.applicationName,
+        EnvironmentName: options.environmentName,
+        EventDate: new Date(),
+        Message: 'Application version already exists',
+        Severity: 'ERROR'
       }];
       return expect(ebDeploy.waitUntilDeployed()).to.be.rejectedWith('Deployment failed.');
     });
 
     it('calls console.error with error message', async () => {
       Events = [{
-        ApplicationName: options.applicationName, 
-        EnvironmentName: options.environmentName, 
-        EventDate: new Date(), 
-        Message: "Application version already exists", 
-        Severity: "ERROR"
+        ApplicationName: options.applicationName,
+        EnvironmentName: options.environmentName,
+        EventDate: new Date(),
+        Message: 'Application version already exists',
+        Severity: 'ERROR'
       }];
       try {
-        await ebDeploy.waitUntilDeployed()
-      } catch (e) {};
+        await ebDeploy.waitUntilDeployed();
+      } catch (e) {}
       expect(console.error).to.have.been.calledOnce;
       expect(console.error.args[0]).to.match(/(.*)\s\[ERROR\]\s(.*)/);
     });
