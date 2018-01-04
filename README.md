@@ -33,7 +33,7 @@ Options:
   -e, --environment-name <value>     name of the Elastic Beanstalk Environment
   -z, --zip-file [value]             the ZIP file that should be deployed
   -b, --bucket <value>               name of the S3 bucket to upload the ZIP file to
-  -P, --bucket-path [value]          target location of the ZIP file within the S3 bucket
+  -p, --bucket-path [value]          target location of the ZIP file within the S3 bucket
   -l, --version-label [value]        version label of the new app version
   -d, --version-description [value]  description of the new app version
   --wait-until-deployed              wait until the app is deployed
