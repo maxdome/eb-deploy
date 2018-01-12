@@ -173,8 +173,8 @@ describe('EBDeploy', () => {
       expect(ebDeploy.updateEnvironment).to.have.been.calledWith(version);
     });
 
-    it('does not call eb.waitUntilDeploy if waitUntilDeployed option is set to false', async () => {
-      ebDeploy.options.waitUntilDeployed = false;
+    it('does not call eb.waitUntilDeploy if skipWaitUntilDeployed option is set to true', async () => {
+      ebDeploy.options.skipWaitUntilDeployed = true;
       await ebDeploy.deploy();
       expect(ebDeploy.waitUntilDeployed).to.not.have.been.called;
     });

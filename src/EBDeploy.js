@@ -55,13 +55,13 @@ class EBDeploy {
         }
       }
 
-      if (this.options.waitUntilDeployed !== false) {
+      if (this.options.skipWaitUntilDeployed !== true) {
         await this.waitUntilDeployed();
       }
 
       this.cleanup();
 
-      console.info(`Application '${this.options.applicationName}' (${this.versionLabel}) ${this.options.waitUntilDeployed !== false ? 'deployed' : 'is deploying'} in ${this.environmentName} environment`);
+      console.info(`Application '${this.options.applicationName}' (${this.versionLabel}) ${this.options.skipWaitUntilDeployed !== true ? 'deployed' : 'is deploying'} in ${this.environmentName} environment`);
     } catch (e) {
       console.error(e.message || e);
       process.exit(1);

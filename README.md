@@ -36,10 +36,10 @@ Options:
   -p, --bucket-path [value]          target location of the ZIP file within the S3 bucket
   -l, --version-label [value]        version label of the new app version
   -d, --version-description [value]  description of the new app version
-  --no-wait-until-deployed           do not wait until the app is deployed (default: true)
   --only-create-app-version          only create a new app version without actually deploying it
   --ignore-existing-app-version      do not deploy an existing app version if the version with the label already exists
-  --skip-cleanup                     skips the cleanup after the deploy
+  --skip-wait-until-deployed         do not wait until the app is deployed
+  --skip-cleanup                     skip the cleanup after the deploy
   --access-key-id [value]            AWS Access Key ID
   --secret-access-key [value]        AWS Secret Access Key
   --session-token [value]            AWS Session Token
@@ -51,6 +51,5 @@ Options:
 
 ```
 eb-deploy --application-name test-application \
-          --environment-name test-application-test \
-          --use-existing-app-version
+          --environment-name test-application-test
 ```
