@@ -17,7 +17,7 @@ class CLI {
       .option('-d, --version-description [value]', 'description of the new app version')
       .option('--no-wait-until-deployed', 'do not wait until the app is deployed')
       .option('--only-create-app-version', 'only create a new app version without actually deploying it')
-      .option('--use-existing-app-version', 'use an existing app version if the version with the label already exists')
+      .option('--ignore-existing-app-version', 'do not deploy an existing app version if the version with the label already exists')
       .option('--skip-cleanup', 'skips the cleanup after the deploy')
       .option('--access-key-id [value]', 'AWS Access Key ID')
       .option('--secret-access-key [value]', 'AWS Secret Access Key')

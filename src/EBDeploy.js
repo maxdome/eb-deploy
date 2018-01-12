@@ -30,7 +30,7 @@ class EBDeploy {
     this.startTime = new Date();
 
     try {
-      if (this.options.useExistingAppVersion && await this.appVersionExists()) {
+      if (this.options.ignoreExistingAppVersion !== true && await this.appVersionExists()) {
         console.info(`Using existing version '${this.versionLabel}'`);
         await this.updateEnvironment(this.versionLabel);
       } else {

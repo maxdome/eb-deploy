@@ -38,7 +38,7 @@ Options:
   -d, --version-description [value]  description of the new app version
   --no-wait-until-deployed           do not wait until the app is deployed (default: true)
   --only-create-app-version          only create a new app version without actually deploying it
-  --use-existing-app-version         use an existing app version if the version with the label already exists
+  --ignore-existing-app-version      do not deploy an existing app version if the version with the label already exists
   --skip-cleanup                     skips the cleanup after the deploy
   --access-key-id [value]            AWS Access Key ID
   --secret-access-key [value]        AWS Secret Access Key

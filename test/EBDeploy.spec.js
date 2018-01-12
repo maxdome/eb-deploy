@@ -103,14 +103,13 @@ describe('EBDeploy', () => {
       expect(ebDeploy.startTime).to.be.instanceof(Date);
     });
 
-    it('calls eb.appVersionExists if useExistingAppVersion is set', async () => {
-      ebDeploy.options.useExistingAppVersion = true;
+    it('does not calls eb.appVersionExists if ignoreExistingAppVersion is true', async () => {
+      ebDeploy.options.ignoreExistingAppVersion = true;
       await ebDeploy.deploy();
-      expect(ebDeploy.appVersionExists).to.have.been.called;
+      expect(ebDeploy.appVersionExists).to.not.have.been.called;
     });
 
     it('calls eb.updateEnvironment with versionLabel if app version already exists', async () => {
-      ebDeploy.options.useExistingAppVersion = true;
       ebDeploy.appVersionExists.returns(true);
       await ebDeploy.deploy();
       expect(ebDeploy.updateEnvironment).to.have.been.calledWith(options.versionLabel);
@@ -174,10 +173,10 @@ describe('EBDeploy', () => {
       expect(ebDeploy.updateEnvironment).to.have.been.calledWith(version);
     });
 
-    it('calls eb.waitUntilDeploy if waitUntilDeployed option is set', async () => {
-      ebDeploy.options.waitUntilDeployed = true;
+    it('does not call eb.waitUntilDeploy if waitUntilDeployed option is set to false', async () => {
+      ebDeploy.options.waitUntilDeployed = false;
       await ebDeploy.deploy();
-      expect(ebDeploy.waitUntilDeployed).to.have.been.called;
+      expect(ebDeploy.waitUntilDeployed).to.not.have.been.called;
     });
 
     it('calls eb.cleanup', async () => {
@@ -704,7 +703,7 @@ describe('EBDeploy', () => {
 
       it('returns undefined if not set in options or in env vars', () => {
         ebDeploy = new EBDeploy();
-        expect(ebDeploy.environmentName).to.not.be.ok;
+        expect(ebDeploy.environmentName).not.to.be.ok;
       });
 
       afterEach(() => {
