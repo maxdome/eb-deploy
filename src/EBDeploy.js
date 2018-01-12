@@ -217,7 +217,7 @@ class EBDeploy {
   }
 
   get versionLabel () {
-    this._versionLabel = this._versionLabel || this.options.versionLabel || process.env['ELASTIC_BEANSTALK_LABEL'] || `sha-${this.sha}-${Date.now()}`;
+    this._versionLabel = this._versionLabel || this.options.versionLabel || process.env['ELASTIC_BEANSTALK_LABEL'] || `${this.sha}-${Date.now()}`;
     return this._versionLabel;
   }
 

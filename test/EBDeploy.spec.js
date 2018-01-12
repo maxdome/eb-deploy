@@ -648,7 +648,7 @@ describe('EBDeploy', () => {
       it('returns sha and timestamp by default', () => {
         ebDeploy = new EBDeploy();
         sandbox.stub(ebDeploy, 'sha').get(() => '9999999');
-        expect(ebDeploy.versionLabel).to.match(/sha-9{7}-\d{13,}/);
+        expect(ebDeploy.versionLabel).to.match(/9{7}-\d{13,}/);
       });
 
       it('returns the same sha and timestamp on the second call', () => {
