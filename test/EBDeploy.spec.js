@@ -342,44 +342,44 @@ describe('EBDeploy', () => {
 
   describe('upload (archiveName, file)', () => {
     const mockFileBody = 'FILEBODY';
-    const bucket = '36195286554965740635-testbucket';
+    const archiveName = 'testArchive.zip';
+    const options = {
+      bucket: '36195286554965740635-testbucket',
+      applicationName: 'TestApplication'
+    };
     let ebDeploy;
 
     beforeEach(() => {
       mock('fs', { readFileSync: sandbox.stub().returns(mockFileBody) });
       EBDeploy = mock.reRequire('../src/EBDeploy');
-      ebDeploy = new EBDeploy({ bucket });
+      ebDeploy = new EBDeploy(options);
       sandbox.stub(ebDeploy.s3, 'putObject').returns({ promise: () => Promise.resolve() });
       sandbox.stub(ebDeploy.s3, 'waitFor').returns({ promise: () => Promise.resolve() });
     });
 
     it('calls s3.putObject with bucket, body and key', async () => {
-      const archiveName = 'testArchive.zip';
       await ebDeploy.upload(archiveName, '');
       expect(ebDeploy.s3.putObject).to.have.been.calledWith({
-        Bucket: bucket,
+        Bucket: options.bucket,
         Body: mockFileBody,
-        Key: archiveName
+        Key: options.applicationName + '/' + archiveName
       });
     });
 
     it('calls s3.waitFor with `objectExists`, bucket and key', async () => {
-      const archiveName = 'testArchive.zip';
       await ebDeploy.upload(archiveName, '');
       expect(ebDeploy.s3.waitFor).to.have.been.calledWith('objectExists', {
-        Bucket: bucket,
-        Key: archiveName
+        Bucket: options.bucket,
+        Key: options.applicationName + '/' + archiveName
       });
     });
 
-    it('returns the S3 key', async () => {
-      const archiveName = 'testArchive.zip';
+    it('returns the S3 key including the application name', async () => {
       const result = await ebDeploy.upload(archiveName, '');
-      expect(result).to.equal(archiveName);
+      expect(result).to.equal(options.applicationName + '/' + archiveName);
     });
 
-    it('uses the bucketPath in the S3 key if it is defined', async () => {
-      const archiveName = 'testArchive.zip';
+    it('returns the S3 key including the bucket path if it is defined', async () => {
       const bucketPath = 'testpath';
       ebDeploy.options.bucketPath = bucketPath;
       const result = await ebDeploy.upload(archiveName, '');

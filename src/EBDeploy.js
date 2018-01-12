@@ -12,7 +12,11 @@ class EBDeploy {
     const config = { region: this.region };
 
     if (this.options.accessKeyId && this.options.secretAccessKey) {
-      config.credentials = new AWS.Credentials(this.options.accessKeyId, this.options.secretAccessKey, this.options.sessionToken);
+      config.credentials = new AWS.Credentials(
+        this.options.accessKeyId,
+        this.options.secretAccessKey,
+        this.options.sessionToken
+      );
     }
 
     AWS.config.update(config);
@@ -111,7 +115,9 @@ class EBDeploy {
   }
 
   async upload (archiveName, file) {
-    const key = this.options.bucketPath ? path.join(this.options.bucketPath, archiveName) : `${archiveName}`;
+    const key = this.options.bucketPath
+      ? path.join(this.options.bucketPath, archiveName)
+      : path.join(this.options.applicationName, archiveName);
 
     await this.s3.putObject({
       Bucket: await this.getBucket(),
