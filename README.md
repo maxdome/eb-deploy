@@ -40,10 +40,10 @@ Options:
   --ignore-existing-app-version      do not deploy an existing app version if the version with the label already exists
   --skip-wait-until-deployed         do not wait until the app is deployed
   --skip-cleanup                     skip the cleanup after the deploy
+  --region [value]                   AWS region of the Elastic Beanstalk application
   --access-key-id [value]            AWS Access Key ID
   --secret-access-key [value]        AWS Secret Access Key
   --session-token [value]            AWS Session Token
-  --region [value]                   AWS region of the Elastic Beanstalk application
   -h, --help                         output usage information
 ```
 

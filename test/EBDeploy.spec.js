@@ -619,11 +619,23 @@ describe('EBDeploy', () => {
         expect(ebDeploy.applicationName).to.equal(applicationName);
       });
 
-      it('returns applicationName from env vars if not set in options', () => {
+      it('returns applicationName from APPLICATION_NAME env var if not set in options', () => {
         process.env.APPLICATION_NAME = 'TestEnvApplication';
         ebDeploy = new EBDeploy();
         expect(ebDeploy.applicationName).to.equal(process.env.APPLICATION_NAME);
         delete process.env.APPLICATION_NAME;
+      });
+
+      it('returns applicationName from ELASTIC_BEANSTALK_APPLICATION env var if not set in options', () => {
+        process.env.ELASTIC_BEANSTALK_APPLICATION = 'TestEnvApplication';
+        ebDeploy = new EBDeploy();
+        expect(ebDeploy.applicationName).to.equal(process.env.ELASTIC_BEANSTALK_APPLICATION);
+        delete process.env.ELASTIC_BEANSTALK_APPLICATION;
+      });
+
+      it('returns undefined if not set in options or in env vars', () => {
+        ebDeploy = new EBDeploy();
+        expect(ebDeploy.applicationName).not.to.be.ok;
       });
     });
 
@@ -654,10 +666,18 @@ describe('EBDeploy', () => {
         expect(ebDeploy.versionLabel).to.equal(versionLabel);
       });
 
-      it('returns versionLabel from env vars if not set in options', () => {
+      it('returns versionLabel from VERSION_LABEL env var if not set in options', () => {
+        process.env.VERSION_LABEL = 'envTestVersionLabel';
+        ebDeploy = new EBDeploy();
+        expect(ebDeploy.versionLabel).to.equal(process.env.VERSION_LABEL);
+        delete process.env.VERSION_LABEL;
+      });
+
+      it('returns versionLabel from ELASTIC_BEANSTALK_LABEL env var if not set in options', () => {
         process.env.ELASTIC_BEANSTALK_LABEL = 'envTestVersionLabel';
         ebDeploy = new EBDeploy();
         expect(ebDeploy.versionLabel).to.equal(process.env.ELASTIC_BEANSTALK_LABEL);
+        delete process.env.ELASTIC_BEANSTALK_LABEL;
       });
 
       it('returns sha and timestamp by default', () => {
@@ -672,10 +692,6 @@ describe('EBDeploy', () => {
         const versionLabel = ebDeploy.versionLabel;
         expect(versionLabel).to.equal(ebDeploy.versionLabel);
       });
-
-      afterEach(() => {
-        delete process.env.ELASTIC_BEANSTALK_LABEL;
-      });
     });
 
     describe('versionDescription ()', () => {
@@ -685,10 +701,18 @@ describe('EBDeploy', () => {
         expect(ebDeploy.versionDescription).to.equal(versionDescription);
       });
 
-      it('returns versionDescription from env vars if not set in options', () => {
+      it('returns versionDescription from VERSION_DESCRIPTION env var if not set in options', () => {
+        process.env.VERSION_DESCRIPTION = 'envTestVersionDescription';
+        ebDeploy = new EBDeploy();
+        expect(ebDeploy.versionDescription).to.equal(process.env.VERSION_DESCRIPTION);
+        delete process.env.VERSION_DESCRIPTION;
+      });
+
+      it('returns versionDescription from ELASTIC_BEANSTALK_DESCRIPTION env var if not set in options', () => {
         process.env.ELASTIC_BEANSTALK_DESCRIPTION = 'envTestVersionDescription';
         ebDeploy = new EBDeploy();
         expect(ebDeploy.versionDescription).to.equal(process.env.ELASTIC_BEANSTALK_DESCRIPTION);
+        delete process.env.ELASTIC_BEANSTALK_DESCRIPTION;
       });
 
       it('returns last commit message by default', () => {
@@ -696,10 +720,6 @@ describe('EBDeploy', () => {
         ebDeploy = new EBDeploy();
         sandbox.stub(ebDeploy, 'commitMsg').get(() => mockCommitMsg);
         expect(ebDeploy.versionDescription).to.equal(mockCommitMsg);
-      });
-
-      afterEach(() => {
-        delete process.env.ELASTIC_BEANSTALK_DESCRIPTION;
       });
     });
 
@@ -710,19 +730,23 @@ describe('EBDeploy', () => {
         expect(ebDeploy.environmentName).to.equal(environmentName);
       });
 
-      it('returns environmentName from env vars if not set in options', () => {
+      it('returns environmentName from ENVIRONMENT_NAME env var if not set in options', () => {
+        process.env.ENVIRONMENT_NAME = 'envTestEnvironmentName';
+        ebDeploy = new EBDeploy();
+        expect(ebDeploy.environmentName).to.equal(process.env.ENVIRONMENT_NAME);
+        delete process.env.ENVIRONMENT_NAME;
+      });
+
+      it('returns environmentName from ELASTIC_BEANSTALK_ENVIRONMENT env var if not set in options', () => {
         process.env.ELASTIC_BEANSTALK_ENVIRONMENT = 'envTestEnvironmentName';
         ebDeploy = new EBDeploy();
         expect(ebDeploy.environmentName).to.equal(process.env.ELASTIC_BEANSTALK_ENVIRONMENT);
+        delete process.env.ELASTIC_BEANSTALK_ENVIRONMENT;
       });
 
       it('returns undefined if not set in options or in env vars', () => {
         ebDeploy = new EBDeploy();
         expect(ebDeploy.environmentName).not.to.be.ok;
-      });
-
-      afterEach(() => {
-        delete process.env.ELASTIC_BEANSTALK_ENVIRONMENT;
       });
     });
 
@@ -740,6 +764,7 @@ describe('EBDeploy', () => {
       it('returns sha from env vars if set', () => {
         process.env.GIT_SHA = '9999999';
         expect(ebDeploy.sha).to.equal(process.env.GIT_SHA);
+        delete process.env.GIT_SHA;
       });
 
       it('calls `git rev-parse` shell command', () => {
@@ -755,10 +780,6 @@ describe('EBDeploy', () => {
 
       it('returns git sha from shell command', () => {
         expect(ebDeploy.sha).to.equal(mockSha);
-      });
-
-      afterEach(() => {
-        delete process.env.GIT_SHA;
       });
     });
 

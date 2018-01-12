@@ -19,10 +19,10 @@ class CLI {
       .option('--ignore-existing-app-version', 'do not deploy an existing app version if the version with the label already exists')
       .option('--skip-wait-until-deployed', 'do not wait until the app is deployed')
       .option('--skip-cleanup', 'skip the cleanup after the deploy')
+      .option('--region [value]', 'AWS region of the Elastic Beanstalk application')
       .option('--access-key-id [value]', 'AWS Access Key ID')
       .option('--secret-access-key [value]', 'AWS Secret Access Key')
       .option('--session-token [value]', 'AWS Session Token')
-      .option('--region [value]', 'AWS region of the Elastic Beanstalk application')
       .parse(argv);
 
     if (!argv.slice(2).length) {

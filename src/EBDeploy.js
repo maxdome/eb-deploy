@@ -213,7 +213,9 @@ class EBDeploy {
   }
 
   get applicationName () {
-    return this.options.applicationName || process.env['APPLICATION_NAME'];
+    return this.options.applicationName ||
+      process.env['APPLICATION_NAME'] ||
+      process.env['ELASTIC_BEANSTALK_APPLICATION'];
   }
 
   get region () {
@@ -221,16 +223,26 @@ class EBDeploy {
   }
 
   get versionLabel () {
-    this._versionLabel = this._versionLabel || this.options.versionLabel || process.env['ELASTIC_BEANSTALK_LABEL'] || `${this.sha}-${Date.now()}`;
+    this._versionLabel = this._versionLabel ||
+      this.options.versionLabel ||
+      process.env['VERSION_LABEL'] ||
+      process.env['ELASTIC_BEANSTALK_LABEL'] ||
+      `${this.sha}-${Date.now()}`;
+
     return this._versionLabel;
   }
 
   get versionDescription () {
-    return this.options.versionDescription || process.env['ELASTIC_BEANSTALK_DESCRIPTION'] || this.commitMsg;
+    return this.options.versionDescription ||
+      process.env['VERSION_DESCRIPTION'] ||
+      process.env['ELASTIC_BEANSTALK_DESCRIPTION'] ||
+      this.commitMsg;
   }
 
   get environmentName () {
-    return this.options.environmentName || process.env['ELASTIC_BEANSTALK_ENVIRONMENT'];
+    return this.options.environmentName ||
+      process.env['ENVIRONMENT_NAME'] ||
+      process.env['ELASTIC_BEANSTALK_ENVIRONMENT'];
   }
 
   get sha () {
