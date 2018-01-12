@@ -36,7 +36,7 @@ Options:
   -p, --bucket-path [value]          target location of the ZIP file within the S3 bucket
   -l, --version-label [value]        version label of the new app version
   -d, --version-description [value]  description of the new app version
-  --wait-until-deployed              wait until the app is deployed
+  --no-wait-until-deployed           do not wait until the app is deployed (default: true)
   --only-create-app-version          only create a new app version without actually deploying it
   --use-existing-app-version         use an existing app version if the version with the label already exists
   --skip-cleanup                     skips the cleanup after the deploy
@@ -45,4 +45,12 @@ Options:
   --session-token [value]            AWS Session Token
   --region [value]                   AWS region of the Elastic Beanstalk application
   -h, --help                         output usage information
+```
+
+### Example
+
+```
+eb-deploy --application-name test-application \
+          --environment-name test-application-test \
+          --use-existing-app-version
 ```

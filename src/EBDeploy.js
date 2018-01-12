@@ -26,7 +26,7 @@ class EBDeploy {
   }
 
   async deploy () {
-    console.info('Deploying application');
+    console.info(`Deploying application '${this.options.applicationName}' (${this.versionLabel})`);
     this.startTime = new Date();
 
     try {
@@ -55,13 +55,13 @@ class EBDeploy {
         }
       }
 
-      if (this.options.waitUntilDeployed) {
+      if (this.options.waitUntilDeployed !== false) {
         await this.waitUntilDeployed();
       }
 
       this.cleanup();
 
-      console.info(`Application ${this.options.applicationName} (${this.versionLabel}) deployed in ${this.environmentName} environment.`);
+      console.info(`Application '${this.options.applicationName}' (${this.versionLabel}) ${this.options.waitUntilDeployed !== false ? 'deployed' : 'is deploying'} in ${this.environmentName} environment`);
     } catch (e) {
       console.error(e.message || e);
       process.exit(1);
