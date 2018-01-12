@@ -11,8 +11,8 @@ class EBDeploy {
     this.options = options;
     const config = { region: this.region };
 
-    if (this.accessKeyId && this.secretAccessKey) {
-      config.credentials = new AWS.Credentials(this.accessKeyId, this.secretAccessKey, this.sessionToken);
+    if (this.options.accessKeyId && this.options.secretAccessKey) {
+      config.credentials = new AWS.Credentials(this.options.accessKeyId, this.options.secretAccessKey, this.options.sessionToken);
     }
 
     AWS.config.update(config);
@@ -221,18 +221,6 @@ class EBDeploy {
 
   get environmentName () {
     return this.options.environmentName || process.env['ELASTIC_BEANSTALK_ENVIRONMENT'];
-  }
-
-  get accessKeyId () {
-    return this.options.accessKeyId || process.env['AWS_ACCESS_KEY_ID'];
-  }
-
-  get secretAccessKey () {
-    return this.options.secretAccessKey || process.env['AWS_SECRET_ACCESS_KEY'];
-  }
-
-  get sessionToken () {
-    return this.options.sessionToken || process.env['AWS_SESSION_TOKEN'];
   }
 
   get sha () {
