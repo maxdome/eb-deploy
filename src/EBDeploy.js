@@ -26,7 +26,7 @@ class EBDeploy {
   }
 
   async deploy () {
-    console.info(`Deploying application '${this.options.applicationName}' (${this.versionLabel})`);
+    console.info(`Deploying application '${this.applicationName}' (${this.versionLabel})`);
     this.startTime = new Date();
 
     try {
@@ -61,7 +61,7 @@ class EBDeploy {
 
       this.cleanup();
 
-      console.info(`Application '${this.options.applicationName}' (${this.versionLabel}) ${this.options.skipWaitUntilDeployed !== true ? 'deployed' : 'is deploying'} in ${this.environmentName} environment`);
+      console.info(`Application '${this.applicationName}' (${this.versionLabel}) ${this.options.skipWaitUntilDeployed !== true ? 'deployed' : 'is deploying'} in ${this.environmentName} environment`);
     } catch (e) {
       console.error(e.message || e);
       process.exit(1);
@@ -70,7 +70,7 @@ class EBDeploy {
 
   async appVersionExists () {
     const response = await this.eb.describeApplicationVersions({
-      ApplicationName: this.options.applicationName,
+      ApplicationName: this.applicationName,
       VersionLabels: [ this.versionLabel ]
     }).promise();
 
@@ -117,7 +117,7 @@ class EBDeploy {
   async upload (archiveName, file) {
     const key = this.options.bucketPath
       ? path.join(this.options.bucketPath, archiveName)
-      : path.join(this.options.applicationName, archiveName);
+      : path.join(this.applicationName, archiveName);
 
     await this.s3.putObject({
       Bucket: await this.getBucket(),
@@ -137,7 +137,7 @@ class EBDeploy {
     const description = this.versionDescription.substring(0, 200);
 
     const response = await this.eb.createApplicationVersion({
-      ApplicationName: this.options.applicationName,
+      ApplicationName: this.applicationName,
       VersionLabel: this.versionLabel,
       Description: description,
       SourceBundle: {
@@ -163,13 +163,13 @@ class EBDeploy {
 
     while (true) {
       const environmentsResponse = await this.eb.describeEnvironments({
-        ApplicationName: this.options.applicationName,
+        ApplicationName: this.applicationName,
         EnvironmentNames: [ this.environmentName ]
       }).promise();
       const environment = environmentsResponse['Environments'][0];
 
       const currentEventsResponse = await this.eb.describeEvents({
-        ApplicationName: this.options.applicationName,
+        ApplicationName: this.applicationName,
         EnvironmentName: this.environmentName,
         StartTime: this.startTime
       }).promise();
@@ -210,6 +210,10 @@ class EBDeploy {
   async getBucket () {
     this._bucket = this._bucket || this.options.bucket || await this.createOrGetStorageLocation();
     return this._bucket;
+  }
+
+  get applicationName () {
+    return this.options.applicationName || process.env['APPLICATION_NAME'];
   }
 
   get region () {

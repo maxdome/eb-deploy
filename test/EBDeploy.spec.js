@@ -612,6 +612,21 @@ describe('EBDeploy', () => {
       });
     });
 
+    describe('applicationName ()', () => {
+      it('returns application name from options if set', () => {
+        const applicationName = 'TestApplication';
+        ebDeploy = new EBDeploy({ applicationName });
+        expect(ebDeploy.applicationName).to.equal(applicationName);
+      });
+
+      it('returns applicationName from env vars if not set in options', () => {
+        process.env.APPLICATION_NAME = 'TestEnvApplication';
+        ebDeploy = new EBDeploy();
+        expect(ebDeploy.applicationName).to.equal(process.env.APPLICATION_NAME);
+        delete process.env.APPLICATION_NAME;
+      });
+    });
+
     describe('region ()', () => {
       it('returns region from options if set', () => {
         const region = 'testRegion';
