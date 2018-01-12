@@ -29,10 +29,10 @@ CLI for AWS Elastic Beanstalk deployments
 Options:
 
   -V, --version                      output the version number
-  -a, --application-name <value>     name of the Elastic Beanstalk Application
-  -e, --environment-name <value>     name of the Elastic Beanstalk Environment
+  -a, --application-name <value>     name of the Elastic Beanstalk application
+  -e, --environment-name <value>     name of the Elastic Beanstalk environment
   -z, --zip-file [value]             the ZIP file that should be deployed
-  -b, --bucket <value>               name of the S3 bucket to upload the ZIP file to
+  -b, --bucket [value]               name of the S3 bucket to upload the ZIP file to
   -p, --bucket-path [value]          target location of the ZIP file within the S3 bucket
   -l, --version-label [value]        version label of the new app version
   -d, --version-description [value]  description of the new app version

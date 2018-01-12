@@ -8,10 +8,10 @@ class CLI {
     program
       .version(pkg.version)
       .description(pkg.description)
-      .option('-a, --application-name <value>', 'name of the Elastic Beanstalk Application')
-      .option('-e, --environment-name <value>', 'name of the Elastic Beanstalk Environment')
+      .option('-a, --application-name <value>', 'name of the Elastic Beanstalk application')
+      .option('-e, --environment-name <value>', 'name of the Elastic Beanstalk environment')
       .option('-z, --zip-file [value]', 'the ZIP file that should be deployed')
-      .option('-b, --bucket <value>', 'name of the S3 bucket to upload the ZIP file to')
+      .option('-b, --bucket [value]', 'name of the S3 bucket to upload the ZIP file to')
       .option('-p, --bucket-path [value]', 'target location of the ZIP file within the S3 bucket')
       .option('-l, --version-label [value]', 'version label of the new app version')
       .option('-d, --version-description [value]', 'description of the new app version')

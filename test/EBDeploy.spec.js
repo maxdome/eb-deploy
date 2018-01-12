@@ -2,7 +2,6 @@
 /* eslint no-unused-expressions: 0 */
 
 const chai = require('chai');
-const path = require('path');
 const sinon = require('sinon');
 const AWS = require('aws-sdk');
 const mock = require('mock-require');
@@ -85,9 +84,10 @@ describe('EBDeploy', () => {
     };
 
     beforeEach(() => {
-      ebDeploy = new EBDeploy(options);
+      ebDeploy = new EBDeploy(Object.assign({}, options));
       sandbox.stub(console, 'info');
       sandbox.stub(ebDeploy, 'appVersionExists');
+      sandbox.stub(ebDeploy, 'createOrGetStorageLocation');
       sandbox.stub(ebDeploy, 'bucketExists');
       sandbox.stub(ebDeploy, 'createBucket');
       sandbox.stub(ebDeploy, 'createZip');
@@ -116,18 +116,21 @@ describe('EBDeploy', () => {
       expect(ebDeploy.updateEnvironment).to.have.been.calledWith(options.versionLabel);
     });
 
-    it('calls eb.bucketExists', async () => {
+    it('calls eb.bucketExists if bucket was defined in options', async () => {
+      ebDeploy.options.bucket = 'testBucket';
       await ebDeploy.deploy();
       expect(ebDeploy.bucketExists).to.have.been.called;
     });
 
-    it('calls eb.createBucket if bucket does not exists yet', async () => {
+    it('calls eb.createBucket if bucket is defined in options and does not exists yet', async () => {
+      ebDeploy.options.bucket = 'testBucket';
       ebDeploy.bucketExists.returns(false);
       await ebDeploy.deploy();
       expect(ebDeploy.createBucket).to.have.been.called;
     });
 
     it('does not call eb.createBucket if bucket exists', async () => {
+      ebDeploy.options.bucket = 'testBucket';
       ebDeploy.bucketExists.returns(true);
       await ebDeploy.deploy();
       expect(ebDeploy.createBucket).to.not.have.been.called;
@@ -148,7 +151,7 @@ describe('EBDeploy', () => {
       const zipFile = 'testZipFile.zip';
       ebDeploy.createZip.returns(zipFile);
       await ebDeploy.deploy();
-      expect(ebDeploy.upload).to.have.been.calledWith(options.versionLabel + '.zip', path.resolve(zipFile));
+      expect(ebDeploy.upload).to.have.been.calledWith(options.versionLabel + '.zip', zipFile);
     });
 
     it('calls eb.createAppVersion with S3 key', async () => {
@@ -168,7 +171,7 @@ describe('EBDeploy', () => {
       const version = 'testVersion';
       ebDeploy.createAppVersion.returns(version);
       await ebDeploy.deploy();
-      expect(ebDeploy.updateEnvironment).to.not.have.been.calledWith(version);
+      expect(ebDeploy.updateEnvironment).to.have.been.calledWith(version);
     });
 
     it('calls eb.waitUntilDeploy if waitUntilDeployed option is set', async () => {
@@ -201,7 +204,7 @@ describe('EBDeploy', () => {
     };
 
     beforeEach(() => {
-      ebDeploy = new EBDeploy(options);
+      ebDeploy = new EBDeploy(Object.assign({}, options));
       response = {
         ResponseMetadata: { RequestId: 'testRequestId' },
         ApplicationVersions: []
@@ -234,27 +237,45 @@ describe('EBDeploy', () => {
     });
   });
 
-  describe('bucketExists ()', () => {
+  describe('createOrGetStorageLocation ()', () => {
+    const S3Bucket = 'testBucket';
     let ebDeploy;
 
-    const options = {
-      bucket: '36195286554965740635-testbucket'
-    };
+    beforeEach(() => {
+      ebDeploy = new EBDeploy();
+      sandbox.stub(ebDeploy.eb, 'createStorageLocation').returns({ promise: () => Promise.resolve({ S3Bucket }) });
+    });
+
+    it('calls eb.createStorageLocation', async () => {
+      await ebDeploy.createOrGetStorageLocation();
+      expect(ebDeploy.eb.createStorageLocation).to.have.been.calledOnce;
+    });
+
+    it('returns S3 bucket name', async () => {
+      const result = await ebDeploy.createOrGetStorageLocation();
+      expect(result).to.equal(S3Bucket);
+    });
+  });
+
+  describe('bucketExists (bucket)', () => {
+    let ebDeploy;
+    const bucket = '36195286554965740635-testbucket';
 
     beforeEach(() => {
-      ebDeploy = new EBDeploy(options);
+      ebDeploy = new EBDeploy();
+      ebDeploy.bucket = bucket;
       sandbox.stub(ebDeploy.s3, 'headBucket').returns({ promise: () => Promise.resolve() });
     });
 
     it('calls s3.headBucket with Bucket property', async () => {
-      await ebDeploy.bucketExists();
+      await ebDeploy.bucketExists(bucket);
       expect(ebDeploy.s3.headBucket).to.have.been.calledWith({
-        Bucket: options.bucket
+        Bucket: bucket
       });
     });
 
     it('returns true if s3.headBucket request was successful', async () => {
-      const result = await ebDeploy.bucketExists();
+      const result = await ebDeploy.bucketExists(bucket);
       expect(result).to.be.true;
     });
 
@@ -263,7 +284,7 @@ describe('EBDeploy', () => {
       error.code = 'NotFound';
       ebDeploy.s3.headBucket.throws(error);
 
-      const result = await ebDeploy.bucketExists();
+      const result = await ebDeploy.bucketExists(bucket);
       expect(result).to.be.false;
     });
 
@@ -272,30 +293,27 @@ describe('EBDeploy', () => {
       error.code = 'Forbidden';
       ebDeploy.s3.headBucket.throws(error);
 
-      return expect(ebDeploy.bucketExists()).to.eventually.be.rejectedWith(error);
+      return expect(ebDeploy.bucketExists(bucket)).to.eventually.be.rejectedWith(error);
     });
   });
 
-  describe('createBucket ()', () => {
+  describe('createBucket (bucket)', () => {
     let ebDeploy;
-
-    const options = {
-      bucket: '36195286554965740635-testbucket'
-    };
+    const bucket = '36195286554965740635-testbucket';
 
     beforeEach(() => {
-      ebDeploy = new EBDeploy(options);
+      ebDeploy = new EBDeploy({ bucket });
       sandbox.stub(ebDeploy.s3, 'createBucket').returns({ promise: () => Promise.resolve() });
     });
 
     it('returns a promise', () => {
-      expect(ebDeploy.createBucket()).to.be.a('promise');
+      expect(ebDeploy.createBucket(bucket)).to.be.a('promise');
     });
 
     it('calls s3.createBucket with Bucket parameter', () => {
-      return ebDeploy.createBucket().then(() => {
+      return ebDeploy.createBucket(bucket).then(() => {
         expect(ebDeploy.s3.createBucket).to.have.been.calledWith({
-          Bucket: options.bucket
+          Bucket: bucket
         });
       });
     });
@@ -304,15 +322,12 @@ describe('EBDeploy', () => {
   describe('createZip ()', () => {
     let ebDeploy;
     let shStub = sandbox.stub().returns('');
-
-    const options = {
-      versionLabel: 'v1.0.0-test'
-    };
+    const versionLabel = 'v1.0.0-test';
 
     beforeEach(() => {
       mock('shell-tag', shStub);
       EBDeploy = mock.reRequire('../src/EBDeploy');
-      ebDeploy = new EBDeploy(options);
+      ebDeploy = new EBDeploy({ versionLabel });
     });
 
     it('executes `git archive` shell command', () => {
@@ -327,16 +342,13 @@ describe('EBDeploy', () => {
 
   describe('upload (archiveName, file)', () => {
     const mockFileBody = 'FILEBODY';
+    const bucket = '36195286554965740635-testbucket';
     let ebDeploy;
-
-    const options = {
-      bucket: '36195286554965740635-testbucket'
-    };
 
     beforeEach(() => {
       mock('fs', { readFileSync: sandbox.stub().returns(mockFileBody) });
       EBDeploy = mock.reRequire('../src/EBDeploy');
-      ebDeploy = new EBDeploy(options);
+      ebDeploy = new EBDeploy({ bucket });
       sandbox.stub(ebDeploy.s3, 'putObject').returns({ promise: () => Promise.resolve() });
       sandbox.stub(ebDeploy.s3, 'waitFor').returns({ promise: () => Promise.resolve() });
     });
@@ -345,7 +357,7 @@ describe('EBDeploy', () => {
       const archiveName = 'testArchive.zip';
       await ebDeploy.upload(archiveName, '');
       expect(ebDeploy.s3.putObject).to.have.been.calledWith({
-        Bucket: options.bucket,
+        Bucket: bucket,
         Body: mockFileBody,
         Key: archiveName
       });
@@ -355,7 +367,7 @@ describe('EBDeploy', () => {
       const archiveName = 'testArchive.zip';
       await ebDeploy.upload(archiveName, '');
       expect(ebDeploy.s3.waitFor).to.have.been.calledWith('objectExists', {
-        Bucket: options.bucket,
+        Bucket: bucket,
         Key: archiveName
       });
     });
@@ -388,7 +400,7 @@ describe('EBDeploy', () => {
     };
 
     beforeEach(() => {
-      ebDeploy = new EBDeploy(options);
+      ebDeploy = new EBDeploy(Object.assign({}, options));
       sandbox.stub(ebDeploy.eb, 'createApplicationVersion').returns({
         promise: () => Promise.resolve({
           ApplicationVersion: {
@@ -427,14 +439,11 @@ describe('EBDeploy', () => {
 
   describe('updateEnvironment (versionLabel)', () => {
     const version = 'v0.0.0-test';
+    const environmentName = 'TestEnvironment';
     let ebDeploy;
 
-    const options = {
-      environmentName: 'TestEnvironment'
-    };
-
     beforeEach(() => {
-      ebDeploy = new EBDeploy(options);
+      ebDeploy = new EBDeploy({ environmentName });
       sandbox.stub(ebDeploy.eb, 'updateEnvironment').returns({ promise: () => Promise.resolve() });
     });
 
@@ -445,7 +454,7 @@ describe('EBDeploy', () => {
     it('calls eb.updateEnvironment with EnvironmentName and VersionLabel parameters', () => {
       return ebDeploy.updateEnvironment(version).then(() => {
         expect(ebDeploy.eb.updateEnvironment).to.have.been.calledWith({
-          EnvironmentName: options.environmentName,
+          EnvironmentName: environmentName,
           VersionLabel: version
         });
       });
@@ -470,7 +479,7 @@ describe('EBDeploy', () => {
       delayStub = sandbox.stub().returns(Promise.resolve());
       mock('delay', delayStub);
       EBDeploy = mock.reRequire('../src/EBDeploy');
-      ebDeploy = new EBDeploy(options);
+      ebDeploy = new EBDeploy(Object.assign({}, options));
       Events = [{
         ApplicationName: options.applicationName,
         EnvironmentName: options.environmentName,
@@ -578,7 +587,33 @@ describe('EBDeploy', () => {
   describe('getters', () => {
     let ebDeploy;
 
-    describe('region()', () => {
+    describe('getBucket ()', () => {
+      it('returns bucket from options if set', async () => {
+        const bucket = 'testBucket';
+        ebDeploy = new EBDeploy({ bucket });
+        const result = await ebDeploy.getBucket();
+        expect(result).to.equal(bucket);
+      });
+
+      it('returns bucket returned from createOrGetStorageLocation() by default', async () => {
+        const bucket = 'testDefaultBucket';
+        ebDeploy = new EBDeploy();
+        sandbox.stub(ebDeploy, 'createOrGetStorageLocation').resolves(bucket);
+        const result = await ebDeploy.getBucket();
+        expect(result).to.equal(bucket);
+      });
+
+      it('only calls createOrGetStorageLocation() once', async () => {
+        const bucket = 'testDefaultBucket';
+        ebDeploy = new EBDeploy();
+        sandbox.stub(ebDeploy, 'createOrGetStorageLocation').resolves(bucket);
+        await ebDeploy.getBucket();
+        await ebDeploy.getBucket();
+        expect(ebDeploy.createOrGetStorageLocation).to.have.been.calledOnce;
+      });
+    });
+
+    describe('region ()', () => {
       it('returns region from options if set', () => {
         const region = 'testRegion';
         ebDeploy = new EBDeploy({ region });
@@ -598,7 +633,7 @@ describe('EBDeploy', () => {
       });
     });
 
-    describe('versionLabel()', () => {
+    describe('versionLabel ()', () => {
       it('returns versionLabel from options if set', () => {
         const versionLabel = 'testVersionLabel';
         ebDeploy = new EBDeploy({ versionLabel });
@@ -629,7 +664,7 @@ describe('EBDeploy', () => {
       });
     });
 
-    describe('versionDescription()', () => {
+    describe('versionDescription ()', () => {
       it('returns versionDescription from options if set', () => {
         const versionDescription = 'testVersionDescription';
         ebDeploy = new EBDeploy({ versionDescription });
@@ -654,10 +689,10 @@ describe('EBDeploy', () => {
       });
     });
 
-    describe('environmentName()', () => {
+    describe('environmentName ()', () => {
       it('returns environmentName from options if set', () => {
         const environmentName = 'testEnvironmentName';
-        ebDeploy = new EBDeploy({ environmentName: environmentName });
+        ebDeploy = new EBDeploy({ environmentName });
         expect(ebDeploy.environmentName).to.equal(environmentName);
       });
 
@@ -677,7 +712,7 @@ describe('EBDeploy', () => {
       });
     });
 
-    describe('accessKeyId()', () => {
+    describe('accessKeyId ()', () => {
       it('returns accessKeyId from options if set', () => {
         const accessKeyId = 'testAccessKeyId';
         ebDeploy = new EBDeploy({ accessKeyId });
@@ -700,7 +735,7 @@ describe('EBDeploy', () => {
       });
     });
 
-    describe('secretAccessKey()', () => {
+    describe('secretAccessKey ()', () => {
       it('returns secretAccessKey from options if set', () => {
         const secretAccessKey = 'testSecretAccessKey';
         ebDeploy = new EBDeploy({ secretAccessKey });
@@ -723,7 +758,7 @@ describe('EBDeploy', () => {
       });
     });
 
-    describe('sessionToken()', () => {
+    describe('sessionToken ()', () => {
       it('returns sessionToken from options if set', () => {
         const sessionToken = 'testSessionToken';
         ebDeploy = new EBDeploy({ sessionToken });
@@ -746,7 +781,7 @@ describe('EBDeploy', () => {
       });
     });
 
-    describe('sha()', () => {
+    describe('sha ()', () => {
       const mockSha = '1111111';
       let shStub;
 
@@ -782,7 +817,7 @@ describe('EBDeploy', () => {
       });
     });
 
-    describe('commitMsg()', () => {
+    describe('commitMsg ()', () => {
       const mockCommitMsg = 'This is a mock commit message';
       let shStub;
 
@@ -810,7 +845,7 @@ describe('EBDeploy', () => {
       });
     });
 
-    describe('archiveName()', () => {
+    describe('archiveName ()', () => {
       it('returns versionLabel string with zip extension', () => {
         const versionLabel = 'testVersionLabel';
         ebDeploy = new EBDeploy({ versionLabel });

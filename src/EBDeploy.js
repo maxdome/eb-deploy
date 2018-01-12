@@ -30,8 +30,10 @@ class EBDeploy {
         console.info(`Using existing version '${this.versionLabel}'`);
         await this.updateEnvironment(this.versionLabel);
       } else {
-        if (!await this.bucketExists()) {
-          await this.createBucket();
+        if (this.options.bucket) {
+          if (!await this.bucketExists(this.options.bucket)) {
+            await this.createBucket(this.options.bucket);
+          }
         }
 
         let zipFile;
@@ -75,10 +77,15 @@ class EBDeploy {
     }
   }
 
-  async bucketExists () {
+  async createOrGetStorageLocation () {
+    const storageLocation = await this.eb.createStorageLocation().promise();
+    return storageLocation.S3Bucket;
+  }
+
+  async bucketExists (bucket) {
     try {
       await this.s3.headBucket({
-        Bucket: this.options.bucket
+        Bucket: bucket
       }).promise();
     } catch (e) {
       if (e.code === 'NotFound') {
@@ -91,9 +98,9 @@ class EBDeploy {
     return true;
   }
 
-  createBucket () {
+  createBucket (bucket) {
     return this.s3.createBucket({
-      Bucket: this.options.bucket
+      Bucket: bucket
     }).promise();
   }
 
@@ -107,13 +114,13 @@ class EBDeploy {
     const key = this.options.bucketPath ? path.join(this.options.bucketPath, archiveName) : `${archiveName}`;
 
     await this.s3.putObject({
-      Bucket: this.options.bucket,
+      Bucket: await this.getBucket(),
       Body: fs.readFileSync(file),
       Key: key
     }).promise();
 
     await this.s3.waitFor('objectExists', {
-      Bucket: this.options.bucket,
+      Bucket: await this.getBucket(),
       Key: key
     }).promise();
 
@@ -128,7 +135,7 @@ class EBDeploy {
       VersionLabel: this.versionLabel,
       Description: description,
       SourceBundle: {
-        S3Bucket: this.options.bucket,
+        S3Bucket: await this.getBucket(),
         S3Key: s3Key
       },
       AutoCreateApplication: false
@@ -192,6 +199,11 @@ class EBDeploy {
     if (!this.options.skipCleanup) {
       sh`git clean -fd`;
     }
+  }
+
+  async getBucket () {
+    this._bucket = this._bucket || this.options.bucket || await this.createOrGetStorageLocation();
+    return this._bucket;
   }
 
   get region () {
