@@ -4,6 +4,8 @@ const delay = require('delay');
 const path = require('path');
 const fs = require('fs');
 
+const DEFAULT_REGION = 'eu-central-1';
+
 class EBDeploy {
   constructor (options = {}) {
     this.options = options;
@@ -193,7 +195,7 @@ class EBDeploy {
   }
 
   get region () {
-    return this.options.region || process.env['AWS_DEFAULT_REGION'] || 'eu-central-1';
+    return this.options.region || process.env['AWS_DEFAULT_REGION'] || DEFAULT_REGION;
   }
 
   get versionLabel () {

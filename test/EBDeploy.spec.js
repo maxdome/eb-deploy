@@ -589,15 +589,12 @@ describe('EBDeploy', () => {
         process.env.AWS_DEFAULT_REGION = 'envTestRegion';
         ebDeploy = new EBDeploy();
         expect(ebDeploy.region).to.equal(process.env.AWS_DEFAULT_REGION);
+        delete process.env.AWS_DEFAULT_REGION;
       });
 
-      it('returns eu-central-1 as by default', () => {
+      it('returns "eu-central-1" as DEFAULT_REGION by default', () => {
         ebDeploy = new EBDeploy();
         expect(ebDeploy.region).to.equal('eu-central-1');
-      });
-
-      afterEach(() => {
-        delete process.env.AWS_DEFAULT_REGION;
       });
     });
 
