@@ -4,13 +4,19 @@ const delay = require('delay');
 const path = require('path');
 const fs = require('fs');
 
+const DEFAULT_REGION = 'eu-central-1';
+
 class EBDeploy {
   constructor (options = {}) {
     this.options = options;
     const config = { region: this.region };
 
-    if (this.accessKeyId && this.secretAccessKey) {
-      config.credentials = new AWS.Credentials(this.accessKeyId, this.secretAccessKey, this.sessionToken);
+    if (this.options.accessKeyId && this.options.secretAccessKey) {
+      config.credentials = new AWS.Credentials(
+        this.options.accessKeyId,
+        this.options.secretAccessKey,
+        this.options.sessionToken
+      );
     }
 
     AWS.config.update(config);
@@ -20,16 +26,18 @@ class EBDeploy {
   }
 
   async deploy () {
-    console.info('Deploying application');
+    console.info(`Deploying application '${this.applicationName}' (${this.versionLabel})`);
     this.startTime = new Date();
 
     try {
-      if (this.options.useExistingAppVersion && await this.appVersionExists()) {
+      if (this.options.ignoreExistingAppVersion !== true && await this.appVersionExists()) {
         console.info(`Using existing version '${this.versionLabel}'`);
         await this.updateEnvironment(this.versionLabel);
       } else {
-        if (!await this.bucketExists()) {
-          await this.createBucket();
+        if (this.options.bucket) {
+          if (!await this.bucketExists(this.options.bucket)) {
+            await this.createBucket(this.options.bucket);
+          }
         }
 
         let zipFile;
@@ -47,13 +55,13 @@ class EBDeploy {
         }
       }
 
-      if (this.options.waitUntilDeployed) {
+      if (this.options.skipWaitUntilDeployed !== true) {
         await this.waitUntilDeployed();
       }
 
       this.cleanup();
 
-      console.info(`Application ${this.options.applicationName} (${this.versionLabel}) deployed in ${this.environmentName} environment.`);
+      console.info(`Application '${this.applicationName}' (${this.versionLabel}) ${this.options.skipWaitUntilDeployed !== true ? 'deployed' : 'is deploying'} in ${this.environmentName} environment`);
     } catch (e) {
       console.error(e.message || e);
       process.exit(1);
@@ -62,7 +70,7 @@ class EBDeploy {
 
   async appVersionExists () {
     const response = await this.eb.describeApplicationVersions({
-      ApplicationName: this.options.applicationName,
+      ApplicationName: this.applicationName,
       VersionLabels: [ this.versionLabel ]
     }).promise();
 
@@ -73,10 +81,15 @@ class EBDeploy {
     }
   }
 
-  async bucketExists () {
+  async createOrGetStorageLocation () {
+    const storageLocation = await this.eb.createStorageLocation().promise();
+    return storageLocation.S3Bucket;
+  }
+
+  async bucketExists (bucket) {
     try {
       await this.s3.headBucket({
-        Bucket: this.options.bucket
+        Bucket: bucket
       }).promise();
     } catch (e) {
       if (e.code === 'NotFound') {
@@ -89,9 +102,9 @@ class EBDeploy {
     return true;
   }
 
-  createBucket () {
+  createBucket (bucket) {
     return this.s3.createBucket({
-      Bucket: this.options.bucket
+      Bucket: bucket
     }).promise();
   }
 
@@ -102,16 +115,18 @@ class EBDeploy {
   }
 
   async upload (archiveName, file) {
-    const key = this.options.bucketPath ? path.join(this.options.bucketPath, archiveName) : `${archiveName}`;
+    const key = this.options.bucketPath
+      ? path.join(this.options.bucketPath, archiveName)
+      : path.join(this.applicationName, archiveName);
 
     await this.s3.putObject({
-      Bucket: this.options.bucket,
+      Bucket: await this.getBucket(),
       Body: fs.readFileSync(file),
       Key: key
     }).promise();
 
     await this.s3.waitFor('objectExists', {
-      Bucket: this.options.bucket,
+      Bucket: await this.getBucket(),
       Key: key
     }).promise();
 
@@ -122,11 +137,11 @@ class EBDeploy {
     const description = this.versionDescription.substring(0, 200);
 
     const response = await this.eb.createApplicationVersion({
-      ApplicationName: this.options.applicationName,
+      ApplicationName: this.applicationName,
       VersionLabel: this.versionLabel,
       Description: description,
       SourceBundle: {
-        S3Bucket: this.options.bucket,
+        S3Bucket: await this.getBucket(),
         S3Key: s3Key
       },
       AutoCreateApplication: false
@@ -148,13 +163,13 @@ class EBDeploy {
 
     while (true) {
       const environmentsResponse = await this.eb.describeEnvironments({
-        ApplicationName: this.options.applicationName,
+        ApplicationName: this.applicationName,
         EnvironmentNames: [ this.environmentName ]
       }).promise();
       const environment = environmentsResponse['Environments'][0];
 
       const currentEventsResponse = await this.eb.describeEvents({
-        ApplicationName: this.options.applicationName,
+        ApplicationName: this.applicationName,
         EnvironmentName: this.environmentName,
         StartTime: this.startTime
       }).promise();
@@ -192,33 +207,42 @@ class EBDeploy {
     }
   }
 
+  async getBucket () {
+    this._bucket = this._bucket || this.options.bucket || await this.createOrGetStorageLocation();
+    return this._bucket;
+  }
+
+  get applicationName () {
+    return this.options.applicationName ||
+      process.env['APPLICATION_NAME'] ||
+      process.env['ELASTIC_BEANSTALK_APPLICATION'];
+  }
+
   get region () {
-    return this.options.region || process.env['AWS_DEFAULT_REGION'] || 'eu-central-1';
+    return this.options.region || process.env['AWS_DEFAULT_REGION'] || DEFAULT_REGION;
   }
 
   get versionLabel () {
-    this._versionLabel = this._versionLabel || this.options.versionLabel || process.env['ELASTIC_BEANSTALK_LABEL'] || `sha-${this.sha}-${Date.now()}`;
+    this._versionLabel = this._versionLabel ||
+      this.options.versionLabel ||
+      process.env['VERSION_LABEL'] ||
+      process.env['ELASTIC_BEANSTALK_LABEL'] ||
+      `${this.sha}-${Date.now()}`;
+
     return this._versionLabel;
   }
 
   get versionDescription () {
-    return this.options.versionDescription || process.env['ELASTIC_BEANSTALK_DESCRIPTION'] || this.commitMsg;
+    return this.options.versionDescription ||
+      process.env['VERSION_DESCRIPTION'] ||
+      process.env['ELASTIC_BEANSTALK_DESCRIPTION'] ||
+      this.commitMsg;
   }
 
   get environmentName () {
-    return this.options.environmentName || process.env['ELASTIC_BEANSTALK_ENVIRONMENT'];
-  }
-
-  get accessKeyId () {
-    return this.options.accessKeyId || process.env['AWS_ACCESS_KEY_ID'];
-  }
-
-  get secretAccessKey () {
-    return this.options.secretAccessKey || process.env['AWS_SECRET_ACCESS_KEY'];
-  }
-
-  get sessionToken () {
-    return this.options.sessionToken || process.env['AWS_SESSION_TOKEN'];
+    return this.options.environmentName ||
+      process.env['ENVIRONMENT_NAME'] ||
+      process.env['ELASTIC_BEANSTALK_ENVIRONMENT'];
   }
 
   get sha () {
