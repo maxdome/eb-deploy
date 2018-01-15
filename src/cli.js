@@ -23,7 +23,7 @@ class CLI {
       .option('--access-key-id [value]', 'AWS Access Key ID')
       .option('--secret-access-key [value]', 'AWS Secret Access Key')
       .option('--session-token [value]', 'AWS Session Token')
-      .allowUnknownOption()
+      .allowUnknownOption() // provides backwards compatibility
       .parse(argv);
 
     if (!argv.slice(2).length) {
