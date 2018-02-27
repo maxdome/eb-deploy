@@ -36,6 +36,7 @@ Options:
   -p, --bucket-path [value]          target location of the ZIP file within the S3 bucket
   -l, --version-label [value]        version label of the new app version
   -d, --version-description [value]  description of the new app version
+  -r, --assume-role [value]          AWS role ARN to assume
   --only-create-app-version          only create a new app version without actually deploying it
   --ignore-existing-app-version      do not deploy an existing app version if the version with the label already exists
   --skip-wait-until-deployed         do not wait until the app is deployed
