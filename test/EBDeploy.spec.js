@@ -74,6 +74,37 @@ describe('EBDeploy', () => {
     });
   });
 
+  describe('assumeRole()', () => {
+    let ebDeploy;
+
+    const options = {
+      assumeRole: 'arn:aws:iam::123456789012:role/demoe'
+    };
+
+    const assumeRoleResponse = {
+      Credentials: 'TestCredentials'
+    };
+
+    beforeEach(() => {
+      ebDeploy = new EBDeploy(Object.assign({}, options));
+      sandbox.stub(ebDeploy.sts, 'assumeRole').returns({ promise: () => Promise.resolve(assumeRoleResponse) });
+      sandbox.stub(ebDeploy.sts, 'credentialsFrom').returns({ promise: () => Promise.resolve() });
+    });
+
+    it('calls sts.assumeRole with RoleArn and RoleSessionName', async () => {
+      await ebDeploy.assumeRole();
+      expect(ebDeploy.sts.assumeRole).to.have.been.calledWith({
+        RoleArn: options.assumeRole,
+        RoleSessionName: 'EB-Deploy'
+      });
+    });
+
+    it('calls sts.credentialsFrom with response from sts.assumeRole', async () => {
+      await ebDeploy.assumeRole();
+      expect(ebDeploy.sts.credentialsFrom).to.have.been.calledWith(assumeRoleResponse);
+    });
+  });
+
   describe('deploy ()', () => {
     let ebDeploy;
 
@@ -86,6 +117,7 @@ describe('EBDeploy', () => {
     beforeEach(() => {
       ebDeploy = new EBDeploy(Object.assign({}, options));
       sandbox.stub(console, 'info');
+      sandbox.stub(ebDeploy, 'assumeRole');
       sandbox.stub(ebDeploy, 'appVersionExists');
       sandbox.stub(ebDeploy, 'createOrGetStorageLocation');
       sandbox.stub(ebDeploy, 'bucketExists');
@@ -101,6 +133,12 @@ describe('EBDeploy', () => {
     it('sets start time', async () => {
       await ebDeploy.deploy();
       expect(ebDeploy.startTime).to.be.instanceof(Date);
+    });
+
+    it('calls eb.assumeRole if assumeRole is set', async () => {
+      ebDeploy.options.assumeRole = 'arn:aws:iam::123456789012:role/demo';
+      await ebDeploy.deploy();
+      expect(ebDeploy.assumeRole).to.have.been.called;
     });
 
     it('does not calls eb.appVersionExists if ignoreExistingAppVersion is true', async () => {
@@ -211,7 +249,7 @@ describe('EBDeploy', () => {
       sandbox.stub(ebDeploy.eb, 'describeApplicationVersions').returns({ promise: () => Promise.resolve(response) });
     });
 
-    it('calls eb.desribeApplicationVersion with ApplicationName and VersionLabels', async () => {
+    it('calls eb.describeApplicationVersion with ApplicationName and VersionLabels', async () => {
       await ebDeploy.appVersionExists();
       expect(ebDeploy.eb.describeApplicationVersions).to.have.been.calledWith({
         ApplicationName: options.applicationName,
@@ -219,18 +257,18 @@ describe('EBDeploy', () => {
       });
     });
 
-    it('returns false if eb.desribeApplicationVersion request returns an empty array', async () => {
+    it('returns false if eb.describeApplicationVersion request returns an empty array', async () => {
       const result = await ebDeploy.appVersionExists();
       expect(result).to.be.false;
     });
 
-    it('returns false if eb.desribeApplicationVersion request returns an non-empty array', async () => {
+    it('returns false if eb.describeApplicationVersion request returns an non-empty array', async () => {
       response.ApplicationVersions.push(options.versionLabel);
       const result = await ebDeploy.appVersionExists();
       expect(result).to.be.true;
     });
 
-    it('throws an error if response from eb.desribeApplicationVersion is not as expected', async () => {
+    it('throws an error if response from eb.describeApplicationVersion is not as expected', async () => {
       response = { UnknownResponse: 'unknown' };
       return expect(ebDeploy.appVersionExists()).to.be.rejected;
     });

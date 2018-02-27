@@ -15,6 +15,7 @@ class CLI {
       .option('-p, --bucket-path [value]', 'target location of the ZIP file within the S3 bucket')
       .option('-l, --version-label [value]', 'version label of the new app version')
       .option('-d, --version-description [value]', 'description of the new app version')
+      .option('-r, --assume-role [value]', 'AWS role ARN to assume')
       .option('--only-create-app-version', 'only create a new app version without actually deploying it')
       .option('--ignore-existing-app-version', 'do not deploy an existing app version if the version with the label already exists')
       .option('--skip-wait-until-deployed', 'do not wait until the app is deployed')

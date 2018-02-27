@@ -23,6 +23,18 @@ class EBDeploy {
 
     this.s3 = new AWS.S3();
     this.eb = new AWS.ElasticBeanstalk();
+    this.sts = new AWS.STS();
+  }
+
+  async assumeRole () {
+    const roleResponse = await this.sts.assumeRole({
+      RoleArn: this.options.assumeRole,
+      RoleSessionName: 'EB-Deploy'
+    }).promise();
+
+    AWS.config.credentials = this.sts.credentialsFrom(roleResponse);
+    this.s3 = new AWS.S3();
+    this.eb = new AWS.ElasticBeanstalk();
   }
 
   async deploy () {
@@ -30,6 +42,10 @@ class EBDeploy {
     this.startTime = new Date();
 
     try {
+      if (this.options.assumeRole) {
+        await this.assumeRole();
+      }
+
       if (this.options.ignoreExistingAppVersion !== true && await this.appVersionExists()) {
         console.info(`Using existing version '${this.versionLabel}'`);
         await this.updateEnvironment(this.versionLabel);

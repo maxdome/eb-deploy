@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "semistandard",
     "test": "mocha",
-    "coverage": "nyc npm test",
+    "test:coverage": "nyc npm test",
     "precommit": "npm run lint && npm test"
   },
   "bin": {
