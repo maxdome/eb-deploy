@@ -24,6 +24,8 @@ class EBDeploy {
     this.s3 = new AWS.S3();
     this.eb = new AWS.ElasticBeanstalk();
     this.sts = new AWS.STS();
+
+    this.deprecateEnvironmentVariables();
   }
 
   async assumeRole () {
@@ -220,6 +222,29 @@ class EBDeploy {
   cleanup () {
     if (!this.options.skipCleanup) {
       sh`git clean -fd`;
+    }
+  }
+
+  deprecateEnvironmentVariables () {
+    function warn (option) {
+      const cliParameter = `--${option.replace(/\s/, '-')}`;
+      console.warn(`Warning: The usage of environment variables as options is deprecated. Please use '${cliParameter}' to set the ${option}.`);
+    }
+
+    if ((process.env['APPLICATION_NAME'] || process.env['ELASTIC_BEANSTALK_APPLICATION']) && !this.options.applicationName) {
+      warn('application name');
+    }
+
+    if ((process.env['VERSION_LABEL'] || process.env['ELASTIC_BEANSTALK_LABEL']) && !this.options.versionLabel) {
+      warn('version label');
+    }
+
+    if ((process.env['VERSION_DESCRIPTION'] || process.env['ELASTIC_BEANSTALK_DESCRIPTION']) && !this.options.versionDescription) {
+      warn('version description');
+    }
+
+    if ((process.env['ENVIRONMENT_NAME'] || process.env['ELASTIC_BEANSTALK_ENVIRONMENT']) && !this.options.environmentName) {
+      warn('environment name');
     }
   }
 
