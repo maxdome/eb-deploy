@@ -87,6 +87,7 @@ describe('EBDeploy', () => {
 
     beforeEach(() => {
       ebDeploy = new EBDeploy(Object.assign({}, options));
+      sandbox.stub(console, 'info');
       sandbox.stub(ebDeploy.sts, 'assumeRole').returns({ promise: () => Promise.resolve(assumeRoleResponse) });
       sandbox.stub(ebDeploy.sts, 'credentialsFrom').returns({ promise: () => Promise.resolve() });
     });

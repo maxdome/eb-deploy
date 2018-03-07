@@ -35,6 +35,7 @@ class EBDeploy {
     }).promise();
 
     AWS.config.credentials = this.sts.credentialsFrom(roleResponse);
+    console.info(`Assumed role ${this.options.assumeRole}`);
     this.s3 = new AWS.S3();
     this.eb = new AWS.ElasticBeanstalk();
   }
