@@ -23,20 +23,20 @@
   "author": "Fabian Schneider <fabian.schneider@maxdome.de>",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.205.0",
-    "commander": "^2.14.1",
-    "delay": "^2.0.0",
+    "aws-sdk": "^2.257.1",
+    "commander": "^2.15.1",
+    "delay": "^3.0.0",
     "shell-tag": "^1.0.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^5.0.2",
-    "mock-require": "^3.0.1",
-    "nyc": "^11.5.0",
+    "mocha": "^5.2.0",
+    "mock-require": "^3.0.2",
+    "nyc": "^12.0.2",
     "semistandard": "^12.0.1",
-    "sinon": "^4.4.2",
-    "sinon-chai": "^3.0.0"
+    "sinon": "^6.0.0",
+    "sinon-chai": "^3.2.0"
   },
   "repository": {
     "type": "git",
